@@ -192,10 +192,11 @@ def main():
     # Initialize delimiters
     delim_initialize()
 
+    curr_time = datetime.now().strftime("%H:%M:%S")
+    print(f"[-] Start time is {curr_time}", file=sys.stderr)
+
     # Process all files specified in arguments
     print(f"[-] blxtract (python adaptation) - extracting {argc - 1} files", file=sys.stderr)
-    curr_time = datetime.now().strftime("%H:%M:%S")
-    print(f"Start time is {curr_time}")
     out = sys.stdout.buffer
 
     for arg in argv[1:]:
@@ -212,7 +213,7 @@ def main():
             err += extract_files(arg, out, 0xFF)
 
     curr_time = datetime.now().strftime("%H:%M:%S")
-    print(f"End time is {curr_time}")
+    print(f"[+] End time is {curr_time}", file=sys.stderr)
     sys.exit(err)
 
 
