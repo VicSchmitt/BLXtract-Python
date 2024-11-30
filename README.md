@@ -13,7 +13,7 @@ Python3 blxtract.py <filename> [<filename> ...]
 ```
 
 Flags -
-+ ``--Ordered`` checks each delimiter separately
-+ ``--Progress`` adds a progress bar
++ ``--ordered`` checks each delimiter separately
++ ``--progress`` adds a progress bar
 
 
