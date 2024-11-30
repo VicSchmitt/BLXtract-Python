@@ -10,16 +10,11 @@ using python.
 Robert Graham BLXtract C code GitHub link: https://github.com/robertdavidgraham/blxtract
 """
 import os.path
+import re
 import sys
+import mmap
 from tqdm import tqdm
 from datetime import datetime
-
-# Strings marking starts of records
-record_start_marks = [
-    b"xT1y22", b"tx16!!", b"eTreppid1!", b"shaitan123"
-]
-start_mark_len = [len(s) for s in record_start_marks]
-is_first = None
 
 
 def ROT3_left(s):
@@ -36,6 +31,18 @@ def ROT3_right(s):
     return bytes((b + 3) % 256 for b in s)
 
 
+# Strings marking starts of records
+record_start_marks = [
+    b"xT1y22", b"tx16!!", b"eTreppid1!", b"shaitan123"
+]
+start_mark_len = [len(s) for s in record_start_marks]
+is_first = None
+# Precompile with regex
+rotated_patterns = [re.escape(ROT3_right(s)) for s in record_start_marks]
+combined_pattern = b'|'.join(rotated_patterns)
+pattern = re.compile(combined_pattern)
+
+
 def delim_end(buf, delim):
     """Searches the buffer for the pattern, returning the number of bytes up
     to the start of that pattern."""
@@ -45,36 +52,11 @@ def delim_end(buf, delim):
 
 
 def delim_search(buf, offset, remaining, mask):
-    """Searches from this point forward for a start-of-record delimiter.
-    There are some quirks to this:
-        1. We only read a chunk of the file at a time, and it's possible that a
-           delimiter may cross chunk boundaries. Therefore, we stop the search
-           before we reach the very end of the buffer, but instead copy the
-           remaining bytes to the front of the next chunk.
-        2. The algorithm is optimized to search one-byte-at-a-time.
-        3. There are 4 start-of-record delimiters that we are looking for at the
-           same time. However, the 'mask' parameter can be used to limit search
-           for only one of the delimiters."""
-
-    i = offset
-    flag = False
-    while i < remaining:
-        if not is_first[buf[i]]:
-            i += 1
-            continue
-
-        if remaining - i < 10 + 1024:
-            break
-
-        for j in range(4):
-            if not ((1 << j) & mask):
-                continue
-
-            if buf[i:i + start_mark_len[j]] == record_start_marks[j]:
-                return i + start_mark_len[j], True
-
-        i += 1
-    return i, False
+    match = pattern.search(buf, offset)
+    if match:
+        return match.end(), True
+    else:
+        return remaining, False
 
 
 def extract_files(filename, out, mask, show_progress=False):
