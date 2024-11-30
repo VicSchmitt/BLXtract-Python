@@ -7,8 +7,13 @@ Most code comments are from Robert Graham's C code.
 This code extracts data from Dennis Montgomery's BLX file format, released by Mike Lindell's Cyber Symposium.
 
 ## Usage:
+Process one or more files -
 ```
 Python3 blxtract.py <filename> [<filename> ...]
 ```
+
+Flags -
++ ``--Ordered`` checks each delimiter separately
++ ``--Progress`` adds a progress bar
 
 

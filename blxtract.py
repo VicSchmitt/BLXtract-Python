@@ -9,8 +9,9 @@ using python.
 
 Robert Graham BLXtract C code GitHub link: https://github.com/robertdavidgraham/blxtract
 """
-
+import os.path
 import sys
+from tqdm import tqdm
 from datetime import datetime
 
 # Strings marking starts of records
@@ -76,7 +77,7 @@ def delim_search(buf, offset, remaining, mask):
     return i, False
 
 
-def extract_files(filename, out, mask):
+def extract_files(filename, out, mask, show_progress=False):
     """Given a filename, search through all the records and print the results."""
     i = 0
     total_offset = 0
@@ -85,11 +86,18 @@ def extract_files(filename, out, mask):
 
     try:
         fp = open(filename, 'rb')
+        file_size = os.path.getsize(filename)
     except IOError as e:
         print(f"[-] {filename}:open: {e}", file=sys.stderr)
         return 1
 
     print(f"[-] {filename}: opened [pass:{mask:x}]", file=sys.stderr)
+
+    # Progress bar init
+    if show_progress:
+        progress_bar = tqdm(total=file_size, unit='B', unit_scale=True, desc=filename)
+    else:
+        progress_bar = None
 
     # Preallocate the buffer with zero bytes
     buf = bytearray(buf_size)
@@ -113,6 +121,9 @@ def extract_files(filename, out, mask):
             read_len = len(bytes_read)
             buf[remaining:remaining + read_len] = bytes_read
             remaining += read_len
+
+            if show_progress:
+                progress_bar.update(read_len)
 
             if remaining < 10 + 1024:
                 break
@@ -152,6 +163,9 @@ def extract_files(filename, out, mask):
         i += 1024  # Move index past this record
 
     fp.close()
+    if show_progress:
+        progress_bar.close()
+
     print(f"[+] {filename}: processed", file=sys.stderr)
     return 0
 
@@ -182,6 +196,7 @@ def main():
     # Error code
     err = 0
     is_ordered = False
+    show_progress = False
 
     # Help menu
     if argc <= 1 or argv[1] in ('-h', '--help'):
@@ -195,7 +210,7 @@ def main():
     print(f"[-] Start time is {curr_time}", file=sys.stderr)
 
     # Process all files specified in arguments
-    print(f"[-] blxtract (python adaptation) - extracting {argc - 1} files", file=sys.stderr)
+    print(f"[-] blxtract (python adaptation) - extracting files", file=sys.stderr)
     out = sys.stdout.buffer
 
     for arg in argv[1:]:
@@ -203,13 +218,17 @@ def main():
             is_ordered = True
             continue
 
+        if arg == '--progress':
+            show_progress = True
+            continue
+
         if is_ordered:
-            err += extract_files(arg, out, 0x01)
-            err += extract_files(arg, out, 0x02)
-            err += extract_files(arg, out, 0x04)
-            err += extract_files(arg, out, 0x08)
+            err += extract_files(arg, out, 0x01, show_progress)
+            err += extract_files(arg, out, 0x02, show_progress)
+            err += extract_files(arg, out, 0x04, show_progress)
+            err += extract_files(arg, out, 0x08, show_progress)
         else:
-            err += extract_files(arg, out, 0xFF)
+            err += extract_files(arg, out, 0xFF, show_progress)
 
     curr_time = datetime.now().strftime("%H:%M:%S")
     print(f"[+] End time is {curr_time}", file=sys.stderr)
