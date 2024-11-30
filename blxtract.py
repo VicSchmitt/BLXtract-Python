@@ -70,7 +70,6 @@ def delim_search(buf, offset, remaining, mask):
                 continue
 
             if buf[i:i + start_mark_len[j]] == record_start_marks[j]:
-                print(f"Found start delimiter at index {i}, pattern {start_mark_len[j]}")
                 return i + start_mark_len[j], True
 
         i += 1
