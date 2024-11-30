@@ -2,7 +2,8 @@
 # Reference: https://intellij-support.jetbrains.com/hc/en-us/articles/206544839
 
 # BLXtract specifics
-rnx-*.bin
+rnx-[0-9][0-9][0-9][0-9][0-9][0-9].bin
+*.txt
 
 # User-specific stuff
 .idea/**/workspace.xml
