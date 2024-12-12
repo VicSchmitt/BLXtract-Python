@@ -1,5 +1,5 @@
 # BLXtract - Python Adaptation
-A python adaptation of Robert Graham's BLXtract tool (originally written in python).
+A python adaptation of Robert Graham's BLXtract tool (originally written in C).
 Full credit goes to Robert Graham (repository link: https://github.com/robertdavidgraham/blxtract).
 
 Most code comments are from Robert Graham's C code.
